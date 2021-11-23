@@ -140,8 +140,8 @@ MockValueConsMacro(?value, ?class),
 VarPointsTo(?hctx, ?value, ?ctx, ?receiver),
 MockObjFromOpenProgramEntryPointReceiver(?value),
 MockObject(?value, ?class) :-
-  ( ExercisedEntryPointMethod(?class, ?method)
-  ; (ForcedReachable(?method), Method_DeclaringType(?method, ?class))),
+  (ExercisedEntryPointMethod(?class, ?method); 
+  (ForcedReachable(?method), Method_DeclaringType(?method, ?class))),
   ThisVar(?method, ?receiver),
   ?value = MOCK_OBJECT_OF_TYPE(?class),
   mainAnalysis.isImmutableContext(?ctx),
@@ -178,5 +178,7 @@ ForcedReachableContext(?ctx, ?method) :-
   isImmutableContext(?ctx).
 
 #endif // MICRO
+
+
 
 #endif // EXCLUDE_IMPLICITLY_REACHABLE_CODE

@@ -1,0 +1,24 @@
+
+#include "common-transfer-methods.dl"
+
+//InformationLabel("default"). 
+//TaintSourceMethod("default", "<javax.servlet.http.HttpServletRequest: boolean isUserInRole(java.lang.String)>").
+//TaintSourceMethod("default", "<javax.servlet.http.HttpServletRequest: java.lang.String getMethod()>").
+//TaintSourceMethod("default", "<test.A: int get()>").
+//TaintSourceMethod("default", "<test3.A: int get()>").
+//TaintSourceMethod("default", "<test3.B: int get()>").
+//TaintSourceMethod("default", "<test3.A: java.lang.String get()>").
+//TaintSourceMethod("default", "<test20.MicroTestCase: java.lang.String getInformation()>").
+TaintSourceMethodWithOverrides("default", "<test20.MicroTestCase: java.lang.String getInformation()>").
+//TaintSourceMethod("default", "<test3.B: java.lang.String get()>").
+//TaintSourceMethod("default", "<myjava.play: int returnVal(int)>").
+//TaintSourceMethod("default", "<javax.servlet.http.HttpServletRequest: java.lang.String returnVal(java.lang.String)>").
+//TaintSourceMethod("default", "<java.io.BufferedReader: int read(char[],int,int)>").
+// The latter is not a great taint source (since it returns ints) but it's good for minimal testing
+
+//LeakingSinkMethodArg("default", 0, "<java.io.PrintStream: void println(int)>").
+//LeakingSinkMethodArg("default", 0, "<java.io.PrintWriter: void println(java.lang.String)>").
+//LeakingSinkMethodArg("default", 0, "<javax.servlet.http.HttpServletResponse: void println(java.lang.String)>").
+LeakingSinkMethodArg("default", 0, "<java.io.PrintStream: void println(java.lang.String)>").
+//LeakingSinkMethodArg("default", 0, "<java.io.PrintStream: void println(boolean)>").
+

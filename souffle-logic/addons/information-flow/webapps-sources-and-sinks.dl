@@ -10,6 +10,12 @@
     isMethod(method), \
     match(pattern, method)
 
+//Lyj add
+TaintSourceMethodPattern("<test.Request: .* get.*\(.*\)>").
+//Lyj add
+
+TaintSourceMethodPattern("<javax.servlet.ServletRequest: java.lang.String getHeader\(java.lang.String\)>").
+
 TaintSourceMethodPattern("<javax.servlet.ServletRequest: .* get.*\(.*\)>").
 TaintSourceMethodPattern("<javax.servlet.ServletContext: .* get.*\(.*\)>").
 TaintSourceMethodPattern("<javax.servlet.ServletConfig: .* get.*\(.*\)>").
@@ -29,6 +35,8 @@ LeakingSinkMethodPattern(0, "<java.io.File.*er: void <init>\(.*\)>").
 LeakingSinkMethodPattern(0, "<java.io.File.*Stream: void <init>\(.*\)>").
 LeakingSinkMethodPattern(0, "<java.sql.Connection: java.sql.PreparedStatement prepareStatement\(.*\)>").
 
+
+LeakingSinkMethodPattern(0, "<javax.servlet.RequestDispatcher: void forward\(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse\)>").
 TaintSourceMethod(?label, ?overriddenMethod) :-
    TaintSourceMethod(?label, ?method),
    Method_DeclaringType(?method, ?superclass),

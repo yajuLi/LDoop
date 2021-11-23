@@ -2,6 +2,7 @@
  * Definitions of sources and sinks
  */
 
+
 .type InformationLabel = symbol
 .decl isInformationLabel(?id:symbol)
 
@@ -14,18 +15,23 @@
 
 // Declaration of a taint source method.
 .decl TaintSourceMethod(?label:InformationLabel, ?method:Method)
+.output TaintSourceMethod
 // Declaration of a taint source method, including all methods that override it.
 .decl TaintSourceMethodWithOverrides(?label:InformationLabel, ?method:Method)
+.output TaintSourceMethodWithOverrides
 
 .decl LeakingSinkMethod(?lable:InformationLabel, ?method:Method)
 .decl LeakingSinkMethodArg(?label:InformationLabel, ?index:number, ?method:Method)
 .decl LeakingSinkVariable(?label:InformationLabel, ?tomethod:MethodInvocation, ?ctx:CONTEXT, ?var:Var)
+.output LeakingSinkVariable
 .decl SanitizationMethod(?method:Method)
 .decl BaseToRetTaintTransferMethod(?method:Method)
 .decl BaseToParamTaintTransferMethod(?method:Method)
 .decl ParamToBaseTaintTransferMethod(?index:number, ?method:Method)
+.output ParamToBaseTaintTransferMethod
 .decl ParamIndexToBaseTaintTransferMethod(?index:number, ?method:Method)
 .decl ParamToRetTaintTransferMethod(?method:Method)
+.output ParamToRetTaintTransferMethod
 .decl MockBaseToRetTaintTransferMethod(?meth:Method)
 .decl MockParamToRetTaintTransferMethod(?meth:Method)
 .decl VarIsCast(?var:Var)
@@ -34,15 +40,22 @@
 .decl AnyMethodInvocation(?invocation:MethodInvocation, ?tomethod:Method)
 .decl MethodInvocationInfo(?invocation:MethodInvocation, ?type:Type, ?var:Var)
 .decl TypeForReturnValue(?type:Type, ?ret:Var, ?invocation:MethodInvocation)
+.output TypeForReturnValue
 
 .decl MethodInvocationInContext(?ctx:CONTEXT, ?invocation:MethodInvocation, ?tomethod:Method)
+.output MethodInvocationInContext
 .decl MethodInvocationInContextInApplication(?ctx:CONTEXT, ?invocation:MethodInvocation, ?method:Method)
+.output MethodInvocationInContextInApplication
 .decl CallTaintingMethod(?label:InformationLabel, ?ctx:CONTEXT, ?invocation:MethodInvocation)
 .decl ParamTaintTransferredToBase(?param:Var, ?ctx:CONTEXT, ?base:Var)
+.output ParamTaintTransferredToBase
 .decl ParamTaintTransferredToRet(?type:Type, ?ret:Var, ?ctx:CONTEXT, ?param:Var)
+.output ParamTaintTransferredToRet
 .decl VarIsTaintedFromVar(?type:Type, ?ctx1:CONTEXT, ?var1:Var, ?ctx2:CONTEXT, ?var2:Var)
+.output VarIsTaintedFromVar
 .decl VarIsTaintedFromVarIndex(?base:Var, ?ctx1:CONTEXT, ?param:Var)
 .decl TaintTransferMethodInvocationInContext(?ctx:CONTEXT, ?index:number, ?invocation:MethodInvocation)
+.output TaintTransferMethodInvocationInContext
 .decl LeakingTaintedInformation(?fromLabel:InformationLabel, ?toLabel:InformationLabel, ?ctx:CONTEXT,
                                 ?invocation:MethodInvocation, ?value:symbol)
 .output LeakingTaintedInformation                                
@@ -52,21 +65,27 @@
 #ifndef DISABLE_POINTS_TO
 
 .decl TaintedValue(?value:Value)
+.output TaintedValue
 
 .decl SourceFromTaintedValue(?value:Value, ?id:symbol)
+.output SourceFromTaintedValue
 .decl TaintedValueTransferred(?declaringType:Type, ?id:symbol, ?type:Type, ?value:Value)
+.output TaintedValueTransferred
 
 .decl TaintedObjectSerialized(?declaringType:Type, ?source:symbol, ?type:Type, ?hctx:mainAnalysis.configuration.HContext, ?val:Value, ?ctx:mainAnalysis.configuration.Context, ?base:Var)
 .decl VarIsTaintedFromValue(?type:Type, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output VarIsTaintedFromValue
 .decl TaintedVarTaintedFromVar(?toCtx:mainAnalysis.configuration.Context, ?to:Var, ?value:Value, ?type:Type)
+.output TaintedVarTaintedFromVar
 .decl MethodReturningStringFactory(?tomethod:Method)
 .decl StringFactoryReturnInvocation(?invocation:MethodInvocation)
 
 .decl TaintedVarPointsTo(?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output TaintedVarPointsTo
 .decl VarIsTaintedFromValueIndex(?ctx:mainAnalysis.configuration.Context, ?base:Var, ?hctx:mainAnalysis.configuration.HContext, ?value:Value)
 
 .decl TaintObjTransfer(fromCtx:mainAnalysis.configuration.Context, from:Var, toCtx:mainAnalysis.configuration.Context, to:Var)
-
+.output TaintObjTransfer
 #endif // DISABLE_POINTS_TO
 
 #ifdef ANDROID

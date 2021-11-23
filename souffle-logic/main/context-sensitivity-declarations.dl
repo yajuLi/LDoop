@@ -20,10 +20,10 @@
 .decl InstanceFieldPointsTo(?hctx:configuration.HContext, ?value:Value, ?sig:Field, ?basehctx:configuration.HContext, ?basevalue:Value)
 
 .decl StaticFieldPointsTo(?hctx:configuration.HContext, ?value:Value, ?sig:Field)
-
+.output StaticFieldPointsTo
 // array-element insensitive
 .decl ArrayIndexPointsTo(?hctx:configuration.HContext, ?value:Value, ?basehctx:configuration.HContext, ?basevalue:Value)
-
+.output ArrayIndexPointsTo
 /**
  * Call graph
  */
@@ -62,18 +62,23 @@
 #endif // INFORMATION_FLOW
 
 .decl OptArgVarPointsTo(?hctx:configuration.HContext, ?value:Value, ?ctx:configuration.Context, ?var:Var)
+.output OptArgVarPointsTo
 
 .decl OptRetVarPointsTo(?hctx:configuration.HContext, ?value:Value, ?ctx:configuration.Context, ?var:Var)
 
 .decl HeapInterproceduralAssign(?toCtx:configuration.Context, ?to:Var, ?fromCtx:configuration.Context, ?from:Var)
 
 .decl LoadHeapInstanceField(?ctx:configuration.Context, ?to:Var, ?sig:Field, ?basehctx:configuration.HContext, ?basevalue:Value)
+.output LoadHeapInstanceField
 
 .decl StoreHeapInstanceField(?sig:Field, ?basehctx:configuration.HContext, ?basevalue:Value, ?ctx:configuration.Context, ?from:Var)
+.output StoreHeapInstanceField
 
 .decl LoadHeapArrayIndex(?ctx:configuration.Context, ?to:Var, ?basehctx:configuration.HContext, ?basevalue:Value)
+.output LoadHeapArrayIndex
 
 .decl StoreHeapArrayIndex(?basehctx:configuration.HContext, ?basevalue:Value, ?ctx:configuration.Context, ?from:Var)
+.output StoreHeapArrayIndex
 
 /**
  * Special heap abstractions.

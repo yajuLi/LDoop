@@ -11,6 +11,10 @@
  * and more.
  *************************************************************/
 
+.decl LyjString(a:symbol)
+.output LyjString
+LyjString("lyj").
+
 /**
  * Objects that should use a context-insensitive heap abstraction.
  */
@@ -25,9 +29,11 @@ HeapAllocation_ContextInsensitive(?heap) :-
  * (will overlap with merely context-insensitive objects)
  */
 .decl HeapAllocation_Merge(?heap:HeapAllocation, ?mergeHeap:HeapAllocation)
+.output HeapAllocation_Merge
 
 // The ones that absolutely have to be kept distinct
 .decl HeapAllocation_Keep(?heap:HeapAllocation)
+.output HeapAllocation_Keep
 
 /**
  * This is the handling for objects that are explicitly allocated in
@@ -38,7 +44,9 @@ HeapAllocation_ContextInsensitive(?heap) :-
  */
 
 .decl AssignNormalHeapAllocation(?heap:HeapAllocation, ?var:Var, ?inmethod:Method)
+.output AssignNormalHeapAllocation
 .decl AssignContextInsensitiveHeapAllocation(?heap:HeapAllocation, ?var:Var, ?inmethod:Method)
+.output AssignContextInsensitiveHeapAllocation
 
 AssignNormalHeapAllocation(?heap, ?var, ?inmethod) :-
   AssignHeapAllocation(?heap, ?var, ?inmethod),
@@ -64,7 +72,9 @@ AssignContextInsensitiveHeapAllocation(?heap, ?var, ?inmethod) :-
  *************************************************************/
 
 .decl HeapRepresentative(?heap:HeapAllocation, ?heapRepr:symbol)
+.output HeapRepresentative
 .decl HeapIsMergedString(?heap:HeapAllocation)
+.output HeapIsMergedString
 
 // If the object is a string that should be merged, ignore other
 // representatives and merge with that.
@@ -876,6 +886,7 @@ StringFactoryHeap(?heap) :-
 
 // Other modules add to this. Don't know why! (REVIEW)
 .decl StringFactoryType(?type:Type)
+.output StringFactoryType
 StringFactoryType(?type) :-
   _StringFactoryType(?type).
 

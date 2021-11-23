@@ -74,6 +74,7 @@
 .decl isMethod(?m:Method)
 
 .decl Method_DeclaringType(?method:Method, ?declaringType:ReferenceType)
+.output Method_DeclaringType
 .decl Method_ReturnType(?method:Method, ?returnType:Type)
 .decl Method_SimpleName(?method:Method, ?simpleName:symbol)
 .decl Method_ParamTypes(?method:Method, ?params:symbol)
@@ -103,6 +104,7 @@
 .decl isVar(v:Var)
 
 .decl Var_Type(?var:Var, ?type:Type)
+.output Var_Type
 .decl Var_DeclaringMethod(?var:Var, ?method:Method)
 .decl Var_SimpleName(?var:Var, ?simplename:symbol)
 
@@ -137,6 +139,7 @@
 .decl isHeapAllocation(?h:HeapAllocation)
 .decl isNormalHeap(?h:NormalHeap)
 .decl isStringConstant(?h:StringConstant)
+.output isStringConstant
 .decl isClassHeap(?h:ClassHeap)
 .decl isMethodHandleConstant(?h:MethodHandleConstant)
 .decl isMethodTypeConstant(?h:MethodTypeConstant)
@@ -168,6 +171,7 @@
 .decl isInstruction(?insn:Instruction)
 
 .decl Instruction_Index(?insn:Instruction, ?index:number)
+.output Instruction_Index
 .decl Instruction_Line(?insn:Instruction, ?index:number)
 .decl Instruction_Method(?insn:Instruction, ?inMethod:Method)
 
@@ -419,7 +423,9 @@
 // Virtual Method Invocation
 .decl VirtualMethodInvocation_Base(?invocation:VirtualMethodInvocation_Insn, ?base:Var)
 .decl VirtualMethodInvocation_SimpleName(?invocation:MethodInvocation, ?simplename:symbol)
+.output VirtualMethodInvocation_SimpleName
 .decl VirtualMethodInvocation_Descriptor(?invocation:MethodInvocation, ?descriptor:MethodDescriptor)
+.output VirtualMethodInvocation_Descriptor
 
 // Super Method Invocation
 .decl SuperMethodInvocation_Base(?invocation:SuperMethodInvocation_Insn, ?base:Var)

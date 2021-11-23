@@ -167,6 +167,7 @@ CallGraphEdge(?invocation, ?tomethod) :-
    Reachable(?inmethod),
    StaticMethodInvocation(?invocation, ?tomethod, ?inmethod).
 
+
 Reachable(?tomethod),
 CallGraphEdge(?invocation, ?tomethod),
 VarPointsTo(?heap, ?this) :-
@@ -176,6 +177,7 @@ VarPointsTo(?heap, ?this) :-
    VarPointsTo(?heap, ?base),
    MethodInvocation_Method(?invocation, ?tomethod),
    ThisVar(?tomethod, ?this).
+
 
 
 /**
@@ -198,6 +200,7 @@ Reachable(?method) :-
  * needs to be initialized as well, so we don't need to invoke class
  * initializers of the super class here.
  */
+
 Reachable(?clinit) :-
    InitializedClass(?class),
    ClassInitializer(?class, ?clinit).

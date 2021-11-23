@@ -102,6 +102,7 @@
 .decl AssignLocal(?from:Var, ?to:Var, ?inmethod:Method) 
 .decl AssignHeapAllocation(?heap:HeapAllocation, ?to:Var, ?inmethod:Method) 
 .decl ReturnVar(?var:Var, ?method:Method) 
+//.output ReturnVar
 .decl StaticMethodInvocation(?invocation:MethodInvocation, ?signature:Method, ?inmethod:Method) 
 
 // imports

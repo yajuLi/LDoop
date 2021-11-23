@@ -1,0 +1,402 @@
+//可以得到P/Taint类似source到sink的整条链上流动的结果,不仅仅是var,还有sourcemethod和sinkmethod,验证Example.jar成功,分析出了securibench中Aliasing1.java一个例子
+
+
+
+/////////
+// IDB //
+/////////
+
+.decl Assign(?to:Var, ?from:Var)
+.output Assign
+.decl VFlow(?to:Var, ?from:Var)
+.output VFlow
+.decl TFlow(?type:Type, ?to:Var)
+.output TFlow
+.decl Alias(?var:Var, ?var1:Var)
+.output Alias
+.decl Access(?base:Var, ?fld:Field, ?from:Var)
+.output Access
+.decl StaticAccess(?fld:Field, ?from:Var)
+.output StaticAccess
+.decl ArrayAccess(?base:Var, ?from:Var)
+.output ArrayAccess
+.decl CallGraphEdge(?invocation:MethodInvocation, ?meth:Method)
+.output CallGraphEdge
+.decl Reachable(?method:Method)
+.output Reachable
+
+.decl SmallVFlow(?from:Var, ?to:Var)
+.output SmallVFlow
+
+.decl Store(?base:Var, ?fld:Field, ?from:Var)
+.output Store
+
+.decl Load(?to:Var, ?base:Var, ?fld:Field)
+.output Load
+
+.decl TaintAssign(?var:Var)
+.output TaintAssign
+
+.decl SinkValue(?var:Var, ?Invocation:Var)
+.output SinkValue
+
+.decl SourceValue(?Invocation:Var, ?var:Var)
+.output SourceValue
+
+.decl LeakingSinkMethod(?meth:Method)
+.output LeakingSinkMethod
+
+.decl TaintSourceMethod(?meth:Method)
+.output TaintSourceMethod
+
+.decl TaintSourceMethodPattern(?pattern:Method)
+.decl LeakingSinkMethodPattern(?pattern:Method)
+
+.decl returnVar(?return:symbol, ?method:symbol)
+.output returnVar
+
+.decl ArrayStore(?from:Var, ?base:Var)
+.output ArrayStore
+
+.decl ArrayLoadVar(?insn:Instruction, ?var:Var)
+.output ArrayLoadVar
+
+.decl ArrayStore_arry_array(?from:Var, ?base:Var)
+.output ArrayStore_arry_array
+
+
+/**
+ * Invocation assignments // mostly reused
+ */
+
+Assign(?actual, ?formal) :-
+   CallGraphEdge(?invocation, ?method),
+   FormalParam(?index, ?method, ?formal),
+   ActualParam(?index, ?invocation, ?actual).
+
+returnVar(?return, ?method),
+Assign(?return, ?local) :-
+   CallGraphEdge(?invocation, ?method),
+   ReturnVar(?return, ?method),
+   AssignReturnValue(?invocation, ?local).
+
+SourceValue(?invocation, ?local) :-    //当分析整个securibench-micro内存会爆掉,还是单个文件夹单独分析
+   CallGraphEdge(?invocation, ?method),
+//   ReturnVar(?return, ?method),       //如果调用的是getParameter方法,那么ReturnVar针对的就是A.java这个单独的文件,并不是比如Aliasing1.java
+   TaintSourceMethod(?method),
+   AssignReturnValue(?invocation, ?local).
+
+//SourceValue(?invocation, ?local) :-
+   //Reachable(?inmethod),
+   //Instruction_Method(?invocation, ?inmethod),
+  // MethodInvocation_Method(?invocation, ?tomethod),
+  // ReturnVar(?return, ?tomethod),
+  // TaintSourceMethod(?tomethod),
+   //AssignReturnValue(?invocation, ?local).
+
+
+TFlow(?heaptype, ?var) :-
+   AssignHeapAllocation(?heap, ?var, ?inMethod),
+   Reachable(?inMethod),
+   HeapAllocation_Type(?heap, ?heaptype).
+
+/**
+ *  Local Assignments 
+ */
+
+Assign(?from, ?to) :-
+   Reachable(?inmethod),
+   AssignLocal(?from, ?to, ?inmethod).
+
+/**
+ * Cast Assignments
+ */
+
+Assign(?from, ?to) :-
+   Reachable(?method),
+   AssignCast(?type, ?from, ?to, ?method),
+   TFlow(?heaptype, ?from),
+   basic.SupertypeOf(?type, ?heaptype). 
+
+/**
+ * VFlow is defined by the transitive closure on Assign()
+ */
+SmallVFlow(?from, ?to),
+VFlow(?to, ?from) :-
+   Assign(?from, ?to).
+
+VFlow(?to, ?from) :-
+   Assign(?from, ?intermediate),
+   VFlow(?to, ?intermediate).
+
+VFlow(?to, ?from) :-
+   VFlow(?intermediate, ?from),
+   VFlow(?to,?intermediate).
+
+/**
+ * Type Flow is based on VFlow, and recursively
+ */
+
+TFlow(?heaptype, ?var) :-
+   VFlow(?var, ?from),
+   TFlow(?heaptype, ?from).
+
+/**
+ * the Alias relation (on variables) is symmetric
+ */
+
+
+/**
+ * Arrays // arrays are created similar to heap objects?
+ * store: base[x] = from
+ * load: to = base[x]
+ */
+
+
+SmallVFlow(?from, ?base) :-   //base(java.lang.String[]) = from(java.lang.String)
+   Reachable(?inmethod),
+   StoreArrayIndex(?from, ?base, ?inmethod),  //注意:base的类型是数组类型,比如:java.lang.String[]
+   TFlow(?heaptype, ?from),
+   TFlow(?basetype, ?base),
+   ComponentType(?basetype, ?componenttype),
+   basic.SupertypeOf(?componenttype, ?heaptype).
+
+
+SmallVFlow(?base, ?to) :-                  //  a[5] =str;str1=a[5] (str1-->str) 这段程序和ArrayStore(?from,?var)描述的是这个过程
+   Reachable(?inmethod),
+   LoadArrayIndex(?base, ?to, ?inmethod),  //注意:base的类型是数组类型,比如:java.lang.String[]
+   Var_Type(?to, ?type),
+   TFlow(?basetype, ?base),
+   ComponentType(?basetype, ?componenttype),
+   basic.SupertypeOf(?type, ?componenttype).
+
+SmallVFlow(?from, ?base) :-               //from和base都是数组类型
+   Reachable(?inmethod),
+   StoreArrayIndex(?from, ?base, ?inmethod), 
+   Var_Type(?from, ?fromtype),
+   Var_Type(?base, ?basetype),
+   ComponentType(?basetype, ?basecomponenttype),
+   ComponentType(?fromtype, ?fromcomponenttype),
+   basic.SupertypeOf(?basecomponenttype, ?fromcomponenttype).
+
+SmallVFlow(?base, ?to) :-                  //如果java.lang.String[]a 被taint了,a[1],a[2],a[3]....都被taint了
+   Reachable(?inmethod),
+   LoadArrayIndex(?base, ?to, ?inmethod),  //注意:这里实际对应的代码是to = a[5](base),但是LoadArrayIndex.fact对应的base是数组,即a#_40
+   Var_Type(?to, ?type),
+   TFlow(?basetype, ?base),
+   ComponentType(?basetype, ?componenttype),
+   basic.SupertypeOf(?type, ?componenttype).
+
+
+
+
+//isVar(?var),
+//Var_Type(?var, ?elementType),
+//ArrayLoadVar(?instruction, ?var) :-
+//  LoadArrayIndex_Base(?instruction, ?base), Var_Type(?base, ?arrayType),   // -> get type of base variable (e.g. String[])
+//  ?elementType = substr(?arrayType, 0, length(?arrayType) - 2),            // -> omit the final '[]' to get the array element type
+//  ArrayInsnIndex(?instruction, ?arrayIndex),                               // -> create unique variable id
+//  ?var = cat(?base, cat("-element-", ?arrayIndex)).                        //    (based on base variable + constant index)
+
+
+/**
+ * Load instance fields: to = base.fld // 
+ */
+
+VFlow(?to, ?heap) :-
+   Reachable(?inmethod),
+   LoadInstanceField(?base1, ?signature, ?to, ?inmethod),
+   VFlow(?base1, ?base2),
+   Access(?heap, ?signature, ?base2).
+
+SmallVFlow(?from, ?to) :-
+   Reachable(?inmethod),
+   LoadInstanceField(?base1, ?fld, ?to, ?inmethod),
+   VFlow(base1,var),
+   Store(?var, ?fld, ?from).
+   
+   
+
+/**
+ * Store instance fields: base.fld = from 
+ * We create a ternary relation Access(base, fld, from)
+ */
+
+Access(?var1, ?fld, ?var2) :-
+   Reachable(?inmethod),
+   StoreInstanceField(?from, ?base, ?fld, ?inmethod),
+   VFlow(?from, ?var1),
+   VFlow(?base, ?var2).
+
+Store(?var, ?fld, ?from) :-
+   Reachable(?inmethod),
+   VFlow(?base, ?var),
+   StoreInstanceField(?from, ?base, ?fld, ?inmethod).
+
+
+
+/**
+ * Load static fields
+ */
+
+VFlow(?to, ?from) :-
+   Reachable(?inmethod),
+   LoadStaticField(?fld, ?to, ?inmethod),
+   StaticAccess(?fld, ?from).
+
+/**
+ * Store static fields
+ */
+
+StaticAccess(?fld, ?from) :-
+   Reachable(?inmethod),
+   StoreStaticField(?from, ?fld, ?inmethod).
+
+/**
+ * about `this', defined separately from CallGraph creation
+ */
+
+
+SmallVFlow(?base, ?this),
+VFlow(?this, ?base) :-
+   Reachable(?inMethod),
+   Instruction_Method(?invocation, ?inMethod),
+   VirtualMethodInvocation_Base(?invocation, ?base),
+   TFlow(?heaptype, ?base),
+   VirtualMethodInvocation_SimpleName(?invocation, ?simplename),
+   VirtualMethodInvocation_Descriptor(?invocation, ?descriptor),
+   basic.MethodLookup(?simplename, ?descriptor, ?heaptype, ?toMethod),
+   ThisVar(?toMethod, ?this).
+
+
+/**
+ * Implicitly reachable methods are invoked by the JVM on startup.
+ */
+Reachable(?method) :-
+    ImplicitReachable(?method).
+
+/**
+ * Reachable methods. Main method, for sure.
+ */
+Reachable(?method) :-
+   basic.MainMethodDeclaration(?method).
+
+/**
+ * If a class needs to be initialized, then its class initializer is
+ * invoked.
+ *
+ * Note that InitializedClass already deals with superclasses that
+ * needs to be initialized as well, so we don't need to invoke class
+ * initializers of the super class here.
+ */
+Reachable(?clinit) :-
+   InitializedClass(?class),
+   ClassInitializer(?class, ?clinit).
+
+/**
+ *   Call graph creation
+ **/
+
+Reachable(?toMethod),
+CallGraphEdge(?invocation, ?toMethod) :-
+   Reachable(?inMethod),
+   Instruction_Method(?invocation, ?inMethod),
+   VirtualMethodInvocation_Base(?invocation, ?base),
+   TFlow(?heaptype, ?base),
+   VirtualMethodInvocation_SimpleName(?invocation, ?simplename),
+   VirtualMethodInvocation_Descriptor(?invocation, ?descriptor),
+   basic.MethodLookup(?simplename, ?descriptor, ?heaptype, ?toMethod).
+
+Reachable(?tomethod),
+CallGraphEdge(?invocation, ?tomethod) :-
+   Reachable(?inmethod),
+   StaticMethodInvocation(?invocation, ?tomethod, ?inmethod).
+
+Reachable(?tomethod),
+CallGraphEdge(?invocation, ?tomethod),
+SmallVFlow(?base, ?this),
+VFlow(?this, ?base) :-
+   Reachable(?inmethod),
+   Instruction_Method(?invocation, ?inmethod),
+   SpecialMethodInvocation_Base(?invocation, ?base),
+   TFlow(_, ?base),
+   MethodInvocation_Method(?invocation, ?tomethod),
+   ThisVar(?tomethod, ?this).
+
+SinkValue(?actual,?invocation) :-
+   CallGraphEdge(?invocation, ?tomethod),
+   FormalParam(?index, ?tomethod, ?formal),
+   ActualParam(?index, ?invocation, ?actual),
+   LeakingSinkMethod(?tomethod).
+
+
+TaintSourceMethod(?method) :- 
+    isMethod(?method), 
+    match(?pattern, ?method),
+    TaintSourceMethodPattern(?pattern).
+
+
+LeakingSinkMethod(?method) :- 
+    isMethod(?method), 
+    match(?pattern, ?method),
+    LeakingSinkMethodPattern(?pattern).
+
+
+LeakingSinkMethodPattern("<java.io.PrintWriter: void println\(.*\)>").
+LeakingSinkMethodPattern("<java.io.PrintStream: void println\(.*\)>").
+
+//LeakingSinkMethodPattern("<Animal: Animal playWith\(Animal\)>").
+//LeakingSinkMethod("<Animal: Animal playWith(Animal)>").  //定义Sink,最后从比如callgraph结果中复制方法,否则容易出错
+
+LeakingSinkMethod(?overriddenMethod) :-
+   LeakingSinkMethod(?method),
+   Method_DeclaringType(?method, ?superclass),
+   Method_SimpleName(?method, ?name),
+   Method_Descriptor(?method, ?descriptor),
+   basic.SubtypeOf(?class, ?superclass),
+   isClassType(?class),
+   Method_DeclaringType(?overriddenMethod, ?class),
+   Method_SimpleName(?overriddenMethod, ?name),
+   Method_Descriptor(?overriddenMethod, ?descriptor).
+
+//TaintSourceMethodPattern("<javax.servlet.GenericServlet: javax.servlet.ServletConfig getServletConfig\(\)>").
+//TaintSourceMethodPattern("<javax.servlet.ServletConfig: java.lang.String getInitParameter\(java.lang.String\)>").
+TaintSourceMethodPattern("<javax.servlet.ServletConfig: .* get.*\(.*\)>").
+TaintSourceMethodPattern("<javax.servlet.ServletRequest: java.lang.String getParameter\(java.lang.String\)>").
+TaintSourceMethodPattern("<javax.servlet.ServletRequest: java.lang.String\[\] getParameterValues\(java.lang.String\)>").
+//TaintSourceMethodPattern("<Cat: Cat getParent\(\)>").
+//TaintSourceMethodPattern("<securibench.micro.A: java.lang.String getParameter(java.lang.String)>").
+//TaintSourceMethod("<java.io.BufferedReader: java.lang.String readLine()>").
+//TaintSourceMethod("<java.io.BufferedReader: int read(char[],int,int)>").
+//TaintSourceMethod("<Cat: Cat getParent()>").  //定义Source
+
+TaintSourceMethod(?overriddenMethod) :-
+   TaintSourceMethod(?method),
+   Method_DeclaringType(?method, ?superclass),
+   Method_SimpleName(?method, ?name),
+   Method_Descriptor(?method, ?descriptor),
+   basic.SubtypeOf(?class, ?superclass),
+   isClassType(?class),
+   Method_DeclaringType(?overriddenMethod, ?class),
+   Method_SimpleName(?overriddenMethod, ?name),
+   Method_Descriptor(?overriddenMethod, ?descriptor).
+
+
+
+.type List = [
+    tail : List,
+    head : Var
+]
+
+.decl B(x : List)
+.output B
+.decl C(x : List)
+.output C
+
+B(r3) :- B(r1),SmallVFlow(b,c),r1=[r2,b],r3=[r1,c].
+C(r31) :- B(r11),r11=[r21,b],SinkValue(b,c),r31=[r11,c].
+
+B([[nil,a],b]) :-  //定义这条链路的前两个元素
+    SourceValue(a,b).   
+
+

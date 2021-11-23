@@ -42,12 +42,15 @@
 // A generally useful concept. Includes the case of both being in the
 // same basic block.
 .decl DominatesItsSuccessorInstruction(?insn:Instruction, ?prevInsn:Instruction)
+.output DominatesItsSuccessorInstruction
 
 // Phi Nodes Definition. If we have SSA input, then any multiple
 // assignments to the same var are because of a Phi node. In fact,
 // these will also be consecutive.
 .decl NextInSamePhiNode(?insn1:Instruction, ?insn2:Instruction)
 .decl PhiNodeHead(?insn:Instruction, ?headInsn:Instruction)
+.output PhiNodeHead
+.output NextInSamePhiNode
 
 
 // Just inverting for efficiency.
@@ -73,11 +76,13 @@ Instruction_Next(?insn, ?next) :-
    Instruction_Method(?insn, ?inMethod),
    Instruction_Index(?insn, ?i),
    OptInstructionFromMethodIndex(?inMethod, ?i + 1, ?next).
+.output Instruction_Next
 
 Instruction_Prev(?insn, ?prev) :-
    Instruction_Method(?insn, ?inMethod),
    Instruction_Index(?insn, ?i),
    OptInstructionFromMethodIndex(?inMethod, ?i - 1, ?prev).
+.output Instruction_Prev
 
 JumpTarget(?insn, ?goto) :-
    Goto_Target(?goto, ?targetIndex),
@@ -125,33 +130,39 @@ BasicBlockBegin(?insn) :-
    JumpTarget(?insn, _).
 BasicBlockBegin(?insn) :-
    FallThrough(?insn).
+.output BasicBlockBegin
 
 .decl NextInSameBasicBlock(?insn:Instruction, ?next:Instruction)
 NextInSameBasicBlock(?insn, ?next) :-
    Instruction_Next(?insn, ?next),
    !BasicBlockBegin(?next).
+.output NextInSameBasicBlock
 
 .decl PrevInSameBasicBlock(?insn:Instruction, ?prev:Instruction)
 PrevInSameBasicBlock(?insn, ?prev) :-
    NextInSameBasicBlock(?prev, ?insn).
+.output PrevInSameBasicBlock
 
 BasicBlockHead(?insn, ?insn) :-
    BasicBlockBegin(?insn).
 BasicBlockHead(?insn, ?headInsn) :-
    BasicBlockHead(?prev, ?headInsn),
    NextInSameBasicBlock(?prev, ?insn).
+.output BasicBlockHead
 
 BasicBlockTail(?headInsn, ?tailInsn) :-
    BasicBlockHead(?tailInsn, ?headInsn),
    !NextInSameBasicBlock(?tailInsn, _).
 
 BasicBlockEnd(?insn) :- BasicBlockTail(_, ?insn).
+.output BasicBlockEnd
 
 UnconditionalControlTransfer(?insn) :-
    isGoto_Insn(?insn) ;
    isSwitch_Insn(?insn) ;
    isReturnInstruction(?insn) ;
    isThrow_Insn(?insn).
+.output UnconditionalControlTransfer
 
 MaySuccessorModuloThrow(?next, ?prev) :-
    JumpTarget(?next, ?prev).
@@ -167,6 +178,7 @@ MaySuccessorBBModuloThrow(?next, ?prev) :-
    BasicBlockEnd(?prevEnd),
    BasicBlockBegin(?next),
    BasicBlockHead(?prevEnd, ?prev).
+.output MaySuccessorBBModuloThrow
 
 MayPredecessorBBModuloThrow(?prev, ?next) :-
    MaySuccessorBBModuloThrow(?next, ?prev).
@@ -216,6 +228,7 @@ DominatesItsPredecessorInstruction(?prevInsn, ?insn) :-
    BasicBlockHead(?prevInsn, ?prevInsnHead),
    (?insn = ?prevInsnHead;
     Dominates(?insn, ?prevInsnHead)).
+.output DominatesItsPredecessorInstruction
 
 // KF: Currently this rules is not being used at all.
 // // Includes the case of both being in the same basic block.
@@ -244,6 +257,7 @@ PhiNodeHead(?nextInsn, ?insn),
 PhiNodeHead(?insn, ?insn) :-
    NextInSamePhiNode(?insn, ?nextInsn),
    !Instruction_Prev(?insn, _).
+.output PhiNodeHead
 
 PhiNodeHead(?nextInsn, ?headInsn) :-
    PhiNodeHead(?phiInsn, ?headInsn),
@@ -291,6 +305,7 @@ BBHeadInMethod(?insn, ?method) :-
 SameMethodBBHeads(?insn1, ?insn2) :-
    BBHeadInMethod(?insn1, ?method),
    BBHeadInMethod(?insn2, ?method).
+.output SameMethodBBHeads
 
 // Auxiliaries...
 
@@ -301,6 +316,7 @@ PredecessorBBsToSameBB(?insn, ?prev1, ?prev2) :-
    MayPredecessorBBModuloThrow(?prev1, ?insn),
    MayPredecessorBBModuloThrow(?prev2, ?insn),
    ?prev1 != ?prev2.
+.output PredecessorBBsToSameBB
 
 .decl LargerPredecessorIndexToSameBB(?insn:Instruction, ?indexLarge:number, ?prevSmall:Instruction)
 LargerPredecessorIndexToSameBB(?insn, ?indexLarge, ?prevSmall) :-
@@ -308,6 +324,7 @@ LargerPredecessorIndexToSameBB(?insn, ?indexLarge, ?prevSmall) :-
    Instruction_Index(?prevLarge, ?indexLarge),
    Instruction_Index(?prevSmall, ?indexSmall),
    ?indexLarge > ?indexSmall.
+.output LargerPredecessorIndexToSameBB
 
 .decl NextPredecessorIndexToSameBB(?insn:Instruction, ?prev:Instruction, ?indexNext:number)
 .output NextPredecessorIndexToSameBB

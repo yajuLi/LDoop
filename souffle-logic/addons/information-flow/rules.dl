@@ -8,6 +8,45 @@
 #include "delta.dl"
 #include "core.dl"
 
+.decl LyjRules(var:symbol)
+.output LyjRules
+.decl LLyjVarPointsTo(?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var, ?var2:Var)
+.output LLyjVarPointsTo
+.decl LyjVarPointsTo(?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output LyjVarPointsTo
+.decl Lyj1VarPointsTo(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output Lyj1VarPointsTo
+.decl Lyj2VarPointsTo(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output Lyj2VarPointsTo
+.decl Lyj3VarPointsTo(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output Lyj3VarPointsTo
+.decl Lyj4VarPointsTo(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output Lyj4VarPointsTo
+.decl Lyj5VarPointsTo(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output Lyj5VarPointsTo
+.decl Lyj6VarPointsTo(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output Lyj6VarPointsTo
+.decl Lyj7VarPointsTo(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output Lyj7VarPointsTo
+.decl Lyj8VarPointsTo(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output Lyj8VarPointsTo
+.decl LyjVarIsTaintedFromVar(?type:Type, ?ctx1:CONTEXT, ?var1:Var, ?ctx2:CONTEXT, ?var2:Var)
+.output LyjVarIsTaintedFromVar
+.decl LyjAppendInvocation_Base(?invocation:MethodInvocation, ?base:Var)
+.output LyjAppendInvocation_Base
+.decl LyjLeakingTaintedInformationVars(?from_ctx:mainAnalysis.configuration.Context, ?from:Var,?to_ctx:mainAnalysis.configuration.Context,?to:Var)
+.output LyjLeakingTaintedInformationVars
+
+LyjRules("rules run").
+
+
+
+
+
+LyjRR(?a,?a) :-
+    LyjRules(?a).
+
+
 #ifndef DISABLE_POINTS_TO
 
 TaintObjTransfer(?fromCtx, ?from, ?toCtx, ?to),
@@ -22,6 +61,7 @@ SourceFromTaintedValue(?value, ?id),
 mainAnalysis.Value_DeclaringType(?value, ?declaringType) :-
   TaintedValueTransferred(?declaringType, ?id, ?type, ?value).
 
+Lyj1VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?toCtx, ?to),
 TaintedValueTransferred(?declaringType, ?source, ?type, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)),
 mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?toCtx, ?to) :-
   TaintedVarTaintedFromVar(?toCtx, ?to, ?value, ?type),
@@ -30,6 +70,7 @@ mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)
   mainAnalysis.isImmutableHContext(?hctx).
   .plan 2:(3,1,2,4)
 
+Lyj2VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?toCtx, ?to),
 TaintedValueTransferred(?declaringType, ?source, ?type, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)),
 mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?toCtx, ?to) :-
   SourceFromTaintedValue(?value, ?source),
@@ -53,10 +94,11 @@ VarIsTaintedFromValue(?type, ?valueIndex, ?ctx, ?base) :-
 /**
  * Information flow through complex relations
  */
+
+
 .decl AppendableType(?type:Type)
 
 AppendableType("java.lang.Appendable").
-
 AppendableType(?type) :-
    basic.SubtypeOf(?type, ?sft),
    AppendableType(?sft).
@@ -66,22 +108,42 @@ mainAnalysis.StringFactoryType("java.lang.String").
 mainAnalysis.StringFactoryType(?type) :-
    AppendableType(?type).
 
+
 #ifndef DISABLE_POINTS_TO
+
+//Lyj add
+.decl LyjStringFactoryVarPointsTo(?factoryHctx:mainAnalysis.configuration.HContext, ?factoryValue:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output LyjStringFactoryVarPointsTo
+.decl LyjStringFactoryVar(?var:Var)
+.output LyjStringFactoryVar
+
+LyjStringFactoryVar(?var):-
+   ?type = "java.lang.Object",
+   Var_Type(?var, ?type).
+
+LyjStringFactoryVarPointsTo(?factoryHctx, ?factoryValue, ?ctx, ?var) :-
+  LyjStringFactoryVar(?var), 
+  mainAnalysis.VarPointsTo(?factoryHctx, ?factoryValue, ?ctx, ?var).
+//Lyj add
 
 mainAnalysis.StringFactoryVar(?var) :-
   mainAnalysis.StringFactoryType(?type),
   Var_Type(?var, ?type).
 
 mainAnalysis.StringFactoryVarPointsTo(?factoryHctx, ?factoryValue, ?ctx, ?var) :-
-  mainAnalysis.StringFactoryVar(?var),
+  mainAnalysis.StringFactoryVar(?var), 
   mainAnalysis.VarPointsTo(?factoryHctx, ?factoryValue, ?ctx, ?var).
 
 .decl AppendInvocation_Base(?invocation:MethodInvocation, ?base:Var)
 
+LyjAppendInvocation_Base(?invocation, ?base),
 AppendInvocation_Base(?invocation, ?base) :-
   VirtualMethodInvocation_SimpleName(?invocation, "append"),
   VirtualMethodInvocation_Base(?invocation, ?base).
 
+mainAnalysis.LyjSmallVFlow(?ctx, ?base, ?ctx, ?ret),  //Basic6
+//mainAnalysis.LyjSmallVFlow(?ctx, ?param, ?ctx, ?ret),
+mainAnalysis.LyjSmallVFlow(?ctx, ?param, ?ctx, ?base),
 VarIsTaintedFromVar(?type, ?ctx, ?ret, ?ctx, ?base),
 VarIsTaintedFromVar(?type, ?ctx, ?ret, ?ctx, ?param) :-
   AppendInvocation_Base(?invocation, ?base),
@@ -90,13 +152,17 @@ VarIsTaintedFromVar(?type, ?ctx, ?ret, ?ctx, ?param) :-
   Var_Type(?ret, ?type),
   ActualParam(0, ?invocation, ?param).
 
+
 VarIsTaintedFromVar(?type, ?ctx, ?base, ?ctx, ?param) :-
   AppendInvocation_Base(?invocation, ?base),
   mainAnalysis.StringFactoryVarPointsTo(_, _, ?ctx, ?base),
   Var_Type(?base, ?type),
   ActualParam(0, ?invocation, ?param).
 
+
 #endif // DISABLE_POINTS_TO
+
+
 
 MethodReturningStringFactory(?tomethod) :-
   mainAnalysis.StringFactoryType(?stringFactoryType),
@@ -107,12 +173,28 @@ StringFactoryReturnInvocation(?invocation) :-
   VirtualMethodInvocation(?invocation, ?tomethod, _).
 
 #ifndef DISABLE_POINTS_TO
+//如果invocation的toMethod的返回值类型和base的类型同时是java.lang.String(StringBuffer,StringBuiler.....)那么taint就从base--->ret
+
+mainAnalysis.LyjSmallVFlow(?ctx, ?base, ?ctx, ?ret),
+LyjVarIsTaintedFromVar(?type, ?ctx, ?ret, ?ctx, ?base),
 VarIsTaintedFromVar(?type, ?ctx, ?ret, ?ctx, ?base) :-
   mainAnalysis.StringFactoryVarPointsTo(_, _, ?ctx, ?base),
   VirtualMethodInvocation_Base(?invocation, ?base),
   StringFactoryReturnInvocation(?invocation),
   AssignReturnValue(?invocation, ?ret),
   Var_Type(?ret, ?type).
+
+//Lyj add
+mainAnalysis.LyjSmallVFlow(?ctx, ?base, ?ctx, ?ret),
+LyjVarIsTaintedFromVar(?type, ?ctx, ?ret, ?ctx, ?base),
+VarIsTaintedFromVar(?type, ?ctx, ?ret, ?ctx, ?base) :-
+  LyjStringFactoryVarPointsTo(_, _, ?ctx, ?base),
+  VirtualMethodInvocation_Base(?invocation, ?base),
+  StringFactoryReturnInvocation(?invocation),
+  AssignReturnValue(?invocation, ?ret),
+  Var_Type(?ret, ?type).
+//Lyj add
+
 
 VarIsTaintedFromValue(?componentType, ?basevalue, ?ctx, ?to) :-
   TaintedValue(?basevalue),
@@ -124,6 +206,8 @@ TypeForReturnValue(?type, ?ret, ?invocation) :-
   mainAnalysis.OptAssignCast(?type, _, ?ret),
   MethodInvocationInfo(?invocation, _, ?ret).
 
+
+Lyj3VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to),
 TaintObjTransfer(?ctx, ?from, ?ctx, ?to),
 TaintedValueTransferred(?declaringType, ?source, ?type, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)),
 mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to) :-
@@ -133,7 +217,9 @@ mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)
   ParamTaintTransferredToRet(?type, ?to, ?ctx, ?from),
   mainAnalysis.isImmutableHContext(?hctx).
 
+
 // Rules for taint propagation through mock taint objects (without a concrete type)
+Lyj4VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to),
 TaintObjTransfer(?ctx, ?param, ?ctx, ?to),
 TaintedValueTransferred(?declaringType, ?source, ?type, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)),
 mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to) :-
@@ -148,6 +234,8 @@ mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)
   mainAnalysis.isImmutableHContext(?hctx).
 .plan 1:(7,1,2,3,4,5,6,8,9),2:(8,1,2,3,4,5,6,7,9)
 
+
+Lyj5VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to),
 TaintedValueTransferred(?declaringType, ?source, ?type, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)),
 mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to) :-
   TaintedVarPointsTo(?value, ?ctx, ?from),
@@ -158,6 +246,7 @@ mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)
   mainAnalysis.isImmutableHContext(?hctx).
 .plan 1:(3,1,2,4,5,6),2:(4,1,2,3,5,6)
 
+Lyj6VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to),
 TaintObjTransfer(?ctx, ?base, ?ctx, ?to),
 TaintedValueTransferred(?declaringType, ?source, ?type, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)),
 mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to) :-
@@ -172,22 +261,30 @@ mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)
   mainAnalysis.isImmutableHContext(?hctx).
 .plan 1:(7,1,2,3,4,5,6,8,9),2:(8,1,2,3,4,5,6,7,9)
 
+
 #ifdef INFORMATION_FLOW_HIGH_SOUNDNESS
+
 .decl ValueTaintedFromValue(?v1:Value, ?v2:Value)
+.output ValueTaintedFromValue
+
+
 
 ValueTaintedFromValue(?newvalue, ?baseObj) :-
   BaseValueTaintedFromParamValue(?newvalue, ?baseObj),
   ?newvalue != ?baseObj.
 
+
+LyjVarPointsTo(?newvalue, ?ctx, ?var),
 mainAnalysis.VarPointsTo(?hctx, ?newvalue, ?ctx, ?var) :-
   ValueTaintedFromValue(?newvalue, ?existingvalue),
   mainAnalysis.VarPointsTo(_, ?existingvalue, ?ctx, ?var),
   mainAnalysis.isImmutableHContext(?hctx).
   .plan 1:(2,1,3)
 
+
 .decl XYZ(?value:Value, ?ctx:mainAnalysis.configuration.Context, ?param:Var)
 
-XYZ(?existingvalue, ?ctx, ?param) :-
+XYZ(?existingvalue, ?ctx, ?param) :- 
   ParamTaintTransferredToBase(?param, ?ctx, ?base),
   mainAnalysis.VarPointsTo(_, ?existingvalue, ?ctx, ?base).
 
@@ -201,6 +298,43 @@ BaseValueTaintedFromParamValue(ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB),
   SourceFromTaintedValue(?value, ?source),
   mainAnalysis.Value_DeclaringType(?value, ?declaringType).
   .plan 1:(2,1,3,4,5), 2:(3,1,2,4,5), 3:(4,3,1,2,5), 4:(5,3,1,2,4)
+
+
+//Lyj add
+.decl LyjValueTaintedFromValue(?newvalue:Value, ?baseObj:Value, ?param:Var, ?ctx_base:mainAnalysis.configuration.Context, ?base:Var)
+LyjValueTaintedFromValue(?newvalue, ?baseObj, ?param, ?ctx_base, ?base) :-
+  LyjBaseValueTaintedFromParamValue(?newvalue, ?baseObj, ?param, ?ctx_base, ?base),
+  ?newvalue != ?baseObj.
+
+/*
+mainAnalysis.LyjSmallVFlow(?ctx_base, ?param, ?ctx_base, ?base),
+mainAnalysis.LyjSmallVFlow(?ctx_base, ?param, ?ctx, ?var):-
+  LyjValueTaintedFromValue(?newvalue, ?existingvalue, ?param, ?ctx_base, ?base),
+  mainAnalysis.VarPointsTo(_, ?existingvalue, ?ctx, ?var),
+  ?var != ?base,
+  mainAnalysis.isImmutableHContext(?hctx).
+  .plan 1:(2,1,3,4)
+*/
+
+
+.decl LyjXYZ(?value:Value, ?ctx:mainAnalysis.configuration.Context, ?param:Var, ?base:Var)
+LyjXYZ(?existingvalue, ?ctx, ?param, ?base) :- 
+  ParamTaintTransferredToBase(?param, ?ctx, ?base),
+  mainAnalysis.VarPointsTo(_, ?existingvalue, ?ctx, ?base).
+
+.decl LyjBaseValueTaintedFromParamValue(v1:Value, v2:Value, param:Var, ?ctx:mainAnalysis.configuration.Context, ?base:Var)
+
+LyjBaseValueTaintedFromParamValue(ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?existingValue, ?param, ?ctx,?base) :-
+  LyjXYZ(?existingValue, ?ctx, ?param, ?base),
+  mainAnalysis.Value_Type(?existingValue, ?type),
+  TaintedVarPointsTo(?value, ?ctx, ?param),
+  SourceFromTaintedValue(?value, ?source),
+  mainAnalysis.Value_DeclaringType(?value, ?declaringType).
+  .plan 1:(2,1,3,4,5), 2:(3,1,2,4,5), 3:(4,3,1,2,5), 4:(5,3,1,2,4)
+//Lyj add
+
+
+
 #else
 .decl XYZ2(?type:Type, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?param:Var)
 
@@ -210,6 +344,7 @@ XYZ2(?type, ?value, ?ctx, ?param) :-
   mainAnalysis.Value_isHeap(?value),
   mainAnalysis.Value_Type(?value, ?type).
 
+Lyj7VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?var),
 TaintObjTransfer(?ctx, ?from, ?ctx, ?var),
 TaintedValueTransferred(?declaringType, ?source, ?type, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)),
 mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB), ?ctx, ?var) :-
@@ -219,7 +354,11 @@ mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, ?type, DEFAULT_BREADCRUMB)
   SourceFromTaintedValue(?value, ?source),
   mainAnalysis.Value_DeclaringType(?value, ?declaringType),
   mainAnalysis.isImmutableHContext(?hctx).
+
 #endif // INFORMATION_FLOW_HIGH_SOUNDNESS
+
+
+
 
 #ifdef INFORMATION_FLOW_HIGH_SOUNDNESS
 // Option 1
@@ -238,6 +377,7 @@ MethodInvocationInContext(?ctx, ?invocation, ?tomethod) :-
   mainAnalysis.CallGraphEdge(?ctx, ?invocation, _, ?tomethod).
 #endif // INFORMATION_FLOW_HIGH_SOUNDNESS
 
+
 /**
  * Sinks and leaks (on top of points-to reasoning)
  */
@@ -247,12 +387,16 @@ LeakingTaintedInformation(?sourceLabel, ?destLabel, ?ctx, ?invocation, ?source) 
   TaintedVarPointsTo(?value, ?ctx, ?var),
   LeakingSinkVariable(?destLabel, ?invocation, ?ctx, ?var).
 
+/* //Lyj comment not necessary
+LyjLeakingTaintedInformationVars(?fromCtx, ?from, ?toCtx, ?to),
 LeakingTaintedInformationVars(?fromCtx, ?from, ?toCtx, ?to) :-
   TaintedVarPointsTo(?value, ?toCtx, ?to),
   LeakingSinkVariable(_, _, ?toCtx, ?to),
   SourceFromTaintedValue(?value, ?from),
   Var_DeclaringMethod(?from, ?meth),
   mainAnalysis.ReachableContext(?fromCtx, ?meth).
+  //Lyj comment
+*/
 
 LeakingTaintedInformationVars(?fromCtx, ?from, ?toCtx, ?to) :-
   TaintedVarPointsTo(?value, ?toCtx, ?to),
@@ -265,6 +409,8 @@ LeakingTaintedInformationVars(?fromCtx, ?from, ?toCtx, ?to) :-
 /**
  * Special Heap allocation on function call
  */
+
+Lyj8VarPointsTo(?hctx, ValueIdMacro(?invo, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to),
 TaintedValueIntroduced(?declaringType, ?invo, ?type, ?label, ValueIdMacro(?invo, ?type, DEFAULT_BREADCRUMB)),
 mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?invo, ?type, DEFAULT_BREADCRUMB), ?ctx, ?to) :-
   CallTaintingMethod(?label, ?ctx, ?invo),
@@ -273,6 +419,7 @@ mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?invo, ?type, DEFAULT_BREADCRUMB), 
   Instruction_Method(?invo, ?method),
   Method_DeclaringType(?method, ?declaringType).
 
+
 TaintedVarPointsTo(?value, ?ctx, ?var) :-
   TaintedValue(?value),
   mainAnalysis.VarPointsTo(_, ?value, ?ctx, ?var).
@@ -280,22 +427,25 @@ TaintedVarPointsTo(?value, ?ctx, ?var) :-
 
 // Generic string internal tainting
 #ifdef INFORMATION_FLOW_HIGH_SOUNDNESS
-TaintedValue(?basevalue) :-
-  TaintedValue(?value),
-  mainAnalysis.InstanceFieldPointsTo(_, ?value, "<java.lang.String: char[] value>", _, ?basevalue).
+//TaintedValue(?basevalue) :-
+//  TaintedValue(?value),
+//  mainAnalysis.InstanceFieldPointsTo(_, ?value, "<java.lang.String: char[] value>", _, ?basevalue).
 
-TaintedValueTransferred(?declaringType, ?source, "char[]", ValueIdMacro(?source, "char[]", DEFAULT_BREADCRUMB)),
-mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, "char[]", DEFAULT_BREADCRUMB), ?ctx, ?to) :-
-  mainAnalysis.LoadHeapInstanceField(?ctx, ?to, "<java.lang.String: char[] value>", _, ?basevalue),
-  TaintedValue(?basevalue),
-  mainAnalysis.Value_DeclaringType(?basevalue, ?declaringType),
-  SourceFromTaintedValue(?basevalue, ?source),
-  mainAnalysis.isImmutableHContext(?hctx).
-  .plan 1:(2,1,3,4,5)
+//TaintedValueTransferred(?declaringType, ?source, "char[]", ValueIdMacro(?source, "char[]", DEFAULT_BREADCRUMB)),
+//mainAnalysis.VarPointsTo(?hctx, ValueIdMacro(?source, "char[]", DEFAULT_BREADCRUMB), ?ctx, ?to) :-
+//  mainAnalysis.LoadHeapInstanceField(?ctx, ?to, "<java.lang.String: char[] value>", _, ?basevalue),
+//  TaintedValue(?basevalue),
+//  mainAnalysis.Value_DeclaringType(?basevalue, ?declaringType),
+//  SourceFromTaintedValue(?basevalue, ?source),
+//  mainAnalysis.isImmutableHContext(?hctx).
+//  .plan 1:(2,1,3,4,5)
 
 #endif // INFORMATION_FLOW_HIGH_SOUNDNESS
 
+
 // Serialization
+
+/*
 .decl SerializeObjectInvocation(?base:Var, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
 
 SerializeObjectInvocation(?base, ?ctx, ?var) :-
@@ -367,7 +517,10 @@ AppTaintedVarPointsTo(?value, ?var) :-
 .output AppTaintedVar
 AppTaintedVar(?var) :- AppTaintedVarPointsTo(_, ?var).
 
+*/
+
 // Rules for tracking taint object flow (from/to var and context)
+/*
 TaintObjTransfer(?callerCtx, ?actual, ?calleeCtx, ?formal) :-
     mainAnalysis.OptArgAssign(?calleeCtx, ?formal, ?callerCtx, ?actual, ?allowedType),
     TaintedVarPointsTo(?taintedValue, ?callerCtx, ?actual),
@@ -385,6 +538,7 @@ TaintObjTransfer(?ctx, ?base, ?calleeCtx, ?this) :-
     MethodInvocation_Base(?invo, ?base),
     mainAnalysis.CallGraphEdge(?ctx, ?invo, ?calleeCtx, ?meth),
     ThisVar(?meth, ?this).
+
 .plan 1:(3,2,1,4)
 
 TaintObjTransfer(?ctx, ?param, ?ctx, ?base) :-
@@ -417,5 +571,6 @@ TaintObjTransfer(?ctx, ?from, ?ctx, ?to) :-
 TaintObjTransfer(?ctx, ?from, ?ctx, ?to) :-
     TaintedVarPointsTo(_, ?ctx, ?from),
     AssignLocal(?from, ?to, _).
+*/
 
 #endif // DISABLE_POINTS_TO

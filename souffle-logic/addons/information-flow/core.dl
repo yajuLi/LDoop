@@ -6,6 +6,15 @@
  * data-flow taint analysis.
  */
 
+.decl LyjCore(var:symbol)
+.output LyjCore
+
+LyjCore("core run").
+
+.decl LyjTaintTransferMethodInvocationInContext(?ctx:CONTEXT, ?index:number, ?invocation:MethodInvocation)
+.output LyjTaintTransferMethodInvocationInContext
+
+
 AnyMethodInvocation(?invocation, ?tomethod) :-
   StaticMethodInvocation(?invocation, ?tomethod, _).
 
@@ -44,43 +53,53 @@ CallTaintingMethod(?label, ?ctx, ?invocation) :-
 /**
  * Taint transfer through aliasing
  */
+//ParamToBaseTaintTransferMethod在common-transfer-methods.dl中设置append方法
+LyjTaintTransferMethodInvocationInContext(?ctx, ?index, ?invocation),
 TaintTransferMethodInvocationInContext(?ctx, ?index, ?invocation) :-
   MethodInvocationInContext(?ctx, ?invocation, ?taintTransferMethod),
   ParamToBaseTaintTransferMethod(?index, ?taintTransferMethod).
 
+mainAnalysis.LyjSmallVFlow(?ctx, ?param, ?ctx, ?base),
 ParamTaintTransferredToBase(?param, ?ctx, ?base) :-
   TaintTransferMethodInvocationInContext(?ctx, ?index, ?invocation),
   ActualParam(?index, ?invocation, ?param),
   MethodInvocation_Base(?invocation, ?base),
   !AssignReturnValue(?invocation, _).
 
+
 MethodInvocationInContextInApplication(?ctx, ?invocation, ?method) :-
   ApplicationMethod(?fromMethod),
   Instruction_Method(?invocation, ?fromMethod),
   MethodInvocationInContext(?ctx, ?invocation, ?method).
 
+//Lyj 从结果来看,这里并没有用于分析static invoke,比如 $stack15 = valueof(s1#_37)
 ParamTaintTransferredToRet(?type, ?ret, ?ctx, ?param) :-
   ParamToRetTaintTransferMethod(?taintTransferMethod),
   MethodInvocationInContextInApplication(?ctx, ?invocation, ?taintTransferMethod),
   ActualParam(_, ?invocation, ?param),
   TypeForReturnValue(?type, ?ret, ?invocation).
 
+
 /**
  * Variable tainting
  */
+//这段代码只在spring中有效果
 VarIsTaintedFromVar(?type, ?ctx, ?param, ?ctx, ?base) :-
    MethodInvocationInContextInApplication(?ctx, ?invocation, ?method),
    BaseToParamTaintTransferMethod(?method),
    MethodInvocation_Base(?invocation, ?base),
    ActualParam(_, ?invocation, ?param),
    Var_Type(?param, ?type).
-
+ 
+//Lyj在common-transfer-methods.dl中设置
+mainAnalysis.LyjSmallVFlow(?ctx, ?base, ?ctx, ?ret),
 VarIsTaintedFromVar(?type, ?ctx, ?ret, ?ctx, ?base) :-
   BaseToRetTaintTransferMethod(?method),
   MethodInvocationInContext(?ctx, ?invocation, ?method),
   MethodInvocation_Base(?invocation, ?base),
   TypeForReturnValue(?type, ?ret, ?invocation).
 
+//Lyj对非android程序没有帮助
 VarIsTaintedFromVarIndex(?base, ?ctx, ?param) :-
    MethodInvocationInContext(?ctx, ?invocation, ?method),
    ParamIndexToBaseTaintTransferMethod(?index, ?method),
@@ -104,6 +123,7 @@ LeakingSinkVariable(?label, ?invocation, ?ctx, ?var) :-
 
 TaintSourceMethod(?label, ?method) :-
   TaintSourceMethodWithOverrides(?label, ?method).
+
 TaintSourceMethod(?label, ?overrideMethod) :-
   TaintSourceMethodWithOverrides(?label, ?method),
   basic.MethodOverridesOther(?overrideMethod, ?method).

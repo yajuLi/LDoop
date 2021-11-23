@@ -59,7 +59,9 @@
   .decl NotSpecialObject(?value:Value)
 
   .decl Value_Type(?value:Value, ?type:Type)
+  .output Value_Type
   .decl Value_DeclaringType(?value:Value, ?type:Type)
+  .output Value_DeclaringType
 
   // [Miscellaneous]
   .decl Value_Null(?null:Value)

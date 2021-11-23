@@ -1,5 +1,7 @@
 .decl StringFactoryVar(?var:Var)
+.output StringFactoryVar
 .decl StringFactoryVarPointsTo(?factoryHctx:configuration.HContext, ?factoryValue:Value, ?ctx:configuration.Context, ?var:Var)
+.output StringFactoryVarPointsTo
 
 #ifdef REFLECTION_SUBSTRING_ANALYSIS
 

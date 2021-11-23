@@ -1,17 +1,27 @@
 .comp AbstractConfiguration {
 
   .decl ContextRequest(?ctx:configuration.Context, ?hctx:configuration.HContext, ?invo:MethodInvocation, ?value:Value, ?method:Method, ?createCGE:number)
+  .output ContextRequest
   .decl StaticContextRequest(?ctx:configuration.Context, ?invo:MethodInvocation)
+  .output StaticContextRequest
 
   .decl ContextResponse(?callerCtx:configuration.Context, ?hctx:configuration.HContext, ?invo:MethodInvocation, ?value:Value, ?method:Method, ?calleeCtx:Context)
+  .output ContextResponse
   .decl StaticContextResponse(?callerCtx:configuration.Context, ?invo:MethodInvocation, ?calleeCtx:Context)
+  .output StaticContextResponse
 
   .decl RecordContextRequest(?callerCtx:configuration.Context, ?value:Value, ?var:Var)
+  .output RecordContextRequest
   .decl RecordContextResponse(?callerCtx:configuration.Context, ?value:Value, ?var:Var, ?hctx:configuration.HContext)
+  .output RecordContextResponse
 
   .decl InitContextRequest(?symbol:symbol)
+  .output InitContextRequest
   .decl InitContextResponse(?symbol:symbol, ?context:Context)
+  .output InitContextResponse
 
   .decl InitHContextRequest(?symbol:symbol)  
+  .output InitHContextRequest
   .decl InitHContextResponse(?symbol:symbol, ?hcontext:HContext)
+  .output InitHContextResponse
 }

@@ -12,4 +12,16 @@
   TaintedValue(value), \
   SourceFromTaintedValue(value, id), \
   LabelFromSource(id, label), \
-  mainAnalysis.Value_DeclaringType(value, declaringType)
+  mainAnalysis.Value_DeclaringType(value, declaringType), \
+  value_type(value, declaringType)
+
+#define LyjRR(name,school) \
+    Name(name), \
+    School(school)   
+ 
+.decl School(b:symbol)
+.output School
+.decl Name(a:symbol)
+.output Name  
+.decl value_type(value:symbol, type:symbol)
+.output value_type

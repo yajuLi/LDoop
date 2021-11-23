@@ -1,5 +1,35 @@
 #include "init.dl"
 
+.decl LyjContextRequest(?ctx:configuration.Context, ?hctx:configuration.HContext, ?invo:MethodInvocation, ?value:Value, ?method:Method, ?createCGE:number, ?base:Var)
+.output LyjContextRequest
+.decl LyjSmallVFlow(?ctx_from:mainAnalysis.configuration.Context, ?from:Var, ?ctx_to:mainAnalysis.configuration.Context, ?to:Var)
+.output LyjSmallVFlow
+.decl LyjSmallVFlow_returnToLocal(?ctx_from:mainAnalysis.configuration.Context, ?from:Var, ?ctx_to:mainAnalysis.configuration.Context, ?to:Var)
+.output LyjSmallVFlow_returnToLocal
+
+
+.decl LyjSmallVFlow_Load(?ctx_from:mainAnalysis.configuration.Context, ?from:Var, ?ctx_to:mainAnalysis.configuration.Context, ?to:Var)
+.output LyjSmallVFlow_Load 
+
+.decl LyjVarPointsToAssignLocal(?from:Value,?to:Var)
+.output LyjVarPointsToAssignLocal
+.decl LyjVarPointsToAssignActualToFormal(?from:Value, ?to:Value)
+.output LyjVarPointsToAssignActualToFormal
+.decl LyjVarPointsToAssignReturnVar(?from:Value, ?to:Value)
+.output LyjVarPointsToAssignReturnVar
+.decl LyjVarPointsToAssignReturnVarToLocal(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output LyjVarPointsToAssignReturnVarToLocal
+.decl LyjCVarPointsTo(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output LyjCVarPointsTo
+.decl LyjCVarPointsToAssignActualToFormal(?hctx:mainAnalysis.configuration.HContext, ?value:Value, ?ctx:mainAnalysis.configuration.Context, ?var:Var)
+.output LyjCVarPointsToAssignActualToFormal
+
+.decl LyjStoreHeapArrayIndex(?basehctx:configuration.HContext, ?basevalue:Value, ?ctx:configuration.Context, ?from:Var)
+.output LyjStoreHeapArrayIndex
+
+//LyjSmallVFlow(?fromCtx, ?from, ?toCtx, ?to):-
+//    TaintObjTransfer(?fromCtx, ?from, ?toCtx, ?to).
+
 /**
  * Generic context-sensitive pointer analysis, and more
  */
@@ -90,9 +120,17 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 // No need to check if type compatible: check is done at original
 // inputs to VarPointsTo
 
+LyjVarPointsToAssignLocal(?from, ?to),
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
   AssignLocal(?from, ?to, _).
+
+//Lyj add
+TaintedVarPointsTo(?value, ?ctx, ?to),
+LyjSmallVFlow(?ctx, ?from, ?ctx, ?to) :-
+  TaintedVarPointsTo(?value, ?ctx, ?from),
+  AssignLocal(?from, ?to, _).
+//Lyj add
 
 /**
  * Cast assignments
@@ -104,6 +142,14 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   Value_Type(?value, ?valuetype),
   basic.SupertypeOf(?type, ?valuetype).
  .plan 2:(3,2,1,4)
+
+//Lyj add
+LyjSmallVFlow(?ctx, ?from, ?ctx, ?to) :-
+  OptAssignCast(?type, ?to, ?from),
+  TaintedVarPointsTo(_, ?ctx, ?from),
+  Value_Type(?value, ?valuetype),
+  basic.SupertypeOf(?type, ?valuetype).
+
 
 .decl OptAssignCast(?type:Type, ?to:Var, ?from:Var)
 OptAssignCast(?type, ?to, ?from) :-
@@ -129,11 +175,21 @@ StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from) :-
 //   InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue).
 //    .plan 1:(2,1)
 
+
 HeapInterproceduralAssign(?ctxTo, ?to, ?ctxFrom, ?from) :-
   LoadHeapInstanceField(?ctxTo, ?to, ?signature, ?basehctx, ?basevalue),
   StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctxFrom, ?from),
   !Value_Null(?basevalue).
  .plan 1:(2,1)
+
+//Lyj add
+LyjSmallVFlow(?ctxFrom, ?from, ?ctxTo, ?to) :-
+  LoadHeapInstanceField(?ctxTo, ?to, ?signature, ?basehctx, ?basevalue),
+  StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctxFrom, ?from),
+  TaintedVarPointsTo(_, ?ctxFrom, ?from),
+  TaintedVarPointsTo(_, ?ctxTo, ?to),
+  !Value_Null(?basevalue).
+
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   HeapInterproceduralAssign(?toCtx, ?to, ?fromCtx, ?from),
@@ -312,6 +368,7 @@ Temp2(?ctx, ?to, ?basehctx, ?basevalue) :-
   Temp1(?basevalue, ?to),
   LoadHeapArrayIndex(?ctx, ?to, ?basehctx, ?basevalue).
 
+
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   Temp2(?ctx, ?to, ?basehctx, ?basevalue),
   ArrayIndexPointsTo(?hctx, ?value, ?basehctx, ?basevalue).
@@ -352,6 +409,15 @@ ReachableLoadArrayIndexBase(?base) :-
   Reachable(?inmethod),
   LoadArrayIndex(?base, _, ?inmethod).
 
+//Lyj add
+TaintedVarPointsTo(?value, ?ctx, ?to),
+LyjSmallVFlow(?ctx, ?from, ?ctx, ?to),
+LyjSmallVFlow_Load(?ctx, ?from, ?ctx, ?to):-
+   Reachable(?inmethod),
+   LoadArrayIndex(?from, ?to, ?inmethod),
+   TaintedVarPointsTo(?value, ?ctx, ?from).
+//Lyj add
+   
 /**
  * Store array index
  */
@@ -397,6 +463,13 @@ ReachableStoreArrayIndexBase(?base) :-
 OptStoreArrayIndex(?from, ?base) :-
   StoreArrayIndex(?from, ?base, _).
 
+//Lyj add 
+TaintedVarPointsTo(?value, ?ctx, ?to),
+LyjSmallVFlow(?ctx, ?from, ?ctx, ?to):-
+   Reachable(?inmethod),
+   StoreArrayIndex(?from, ?to, ?inmethod),
+   TaintedVarPointsTo(?value, ?ctx, ?from).   //比如Aliasing3中的a[5]=name,name是Taint,但是a之前没有被taint,这个逻辑应该在rules.dl中添加,这此处加当然最方便
+//Lyj add
 
 /**
  * Assignments for method invocations
@@ -413,6 +486,7 @@ OptArgAssign(?calleeCtx, ?formal, ?callerCtx, ?actual) :-
   FormalParam(?index, ?method, ?formal).
 */
 
+
 OptArgAssign(?calleeCtx, ?formal, ?callerCtx, ?actual, ?allowedType) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
 #ifdef PRECISE_GENERICS
@@ -422,6 +496,21 @@ OptArgAssign(?calleeCtx, ?formal, ?callerCtx, ?actual, ?allowedType) :-
   ActualParam(?index, ?invocation, ?actual),
   FormalParam(?index, ?method, ?formal),
   Var_Type(?formal, ?allowedType).
+
+
+//Lyj add
+LyjSmallVFlow(?callerCtx, ?actual, ?calleeCtx, ?formal) :-
+  CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
+#ifdef PRECISE_GENERICS
+  !isMapPutMethod(?method),
+  !isCollectionAddMethod(?method),
+#endif
+  ActualParam(?index, ?invocation, ?actual),
+  FormalParam(?index, ?method, ?formal),
+  TaintedVarPointsTo(_, ?callerCtx, ?actual),
+  TaintedVarPointsTo(_, ?calleeCtx, ?formal),
+  Var_Type(?formal, ?allowedType).
+
 
 #ifdef PRECISE_GENERICS
 .decl isCollectionAddMethod(?method:Method)
@@ -482,6 +571,7 @@ OptArgAssign(?calleeCtx, ?formal, ?callerCtx, ?actual, ?allowedType) :-
 
 #ifdef INFORMATION_FLOW
 
+LyjVarPointsToAssignReturnVarToLocal(?hctx, ?value, ?callerCtx, ?local),
 VarPointsTo(?hctx, ?value, ?callerCtx, ?local) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
   AssignReturnValue(?invocation, ?local),
@@ -490,6 +580,21 @@ VarPointsTo(?hctx, ?value, ?callerCtx, ?local) :-
   OptRetVarPointsTo(?hctx, ?value, ?calleeCtx, ?return).
   .plan 1:(4,3,1,2)
 
+//Lyj add
+LyjSmallVFlow_returnToLocal(?calleeCtx, ?return, ?callerCtx, ?local),
+LyjSmallVFlow(?calleeCtx, ?return, ?callerCtx, ?local) :-
+  CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
+  AssignReturnValue(?invocation, ?local),
+  ReturnVar(?return, ?method),
+  !SanitizationMethod(?method),
+  OptRetVarPointsTo(?hctx, ?value, ?calleeCtx, ?return),
+  TaintedVarPointsTo(_, ?calleeCtx, ?return),
+  TaintedVarPointsTo(_, ?callerCtx, ?local).
+  .plan 1:(4,3,1,2,5,6)
+
+
+LyjVarPointsToAssignReturnVarToLocal(?hctx, ?value, ?callerCtx, ?local),
+LyjVarPointsToAssignReturnVar(?return, ?local),
 VarPointsTo(?hctx, ?value, ?callerCtx, ?local) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
   AssignReturnValue(?invocation, ?local),
@@ -498,12 +603,31 @@ VarPointsTo(?hctx, ?value, ?callerCtx, ?local) :-
   isHeapAllocation(?value).
   .plan 1:(4,5,3,1,2)
 
+//Lyj add
+LyjSmallVFlow(?calleeCtx, ?return, ?callerCtx, ?local) :-
+  CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
+  AssignReturnValue(?invocation, ?local),
+  ReturnVar(?return, ?method),
+  OptRetVarPointsTo(?hctx, ?value, ?calleeCtx, ?return),
+  isHeapAllocation(?value),
+  TaintedVarPointsTo(_, ?calleeCtx, ?return),
+  TaintedVarPointsTo(_, ?callerCtx, ?local).
+  .plan 1:(4,5,3,1,2,6,7)
+
 #else
 
 OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
   AssignReturnValue(?invocation, ?local),
   ReturnVar(?return, ?method).
+
+//Lyj add
+LyjSmallVFlow(?calleeCtx, ?return, ?callerCtx, ?local) :-
+  CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
+  AssignReturnValue(?invocation, ?local),
+  ReturnVar(?return, ?method),
+  TaintedVarPointsTo(_, ?calleeCtx, ?return),
+  TaintedVarPointsTo(_, ?callerCtx, ?local).
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptRetVarPointsTo(?hctx, ?value, ?fromCtx, ?from),
@@ -522,6 +646,7 @@ OptRetVarPointsTo(?hctx, ?value, ?returnCtx, ?return) :-
 
 #ifdef INFORMATION_FLOW
 
+LyjVarPointsToAssignActualToFormal(?from, ?to),
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptArgVarPointsTo(?hctx, ?value, ?fromCtx, ?from),
   OptArgAssign(?toCtx, ?to, ?fromCtx, ?from, ?allowedType),
@@ -546,7 +671,7 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
  *  OptArgAssign(?toCtx, ?to, ?fromCtx, ?from).
  *.plan 1:(2,1)
  **/
-
+LyjCVarPointsToAssignActualToFormal(?hctx, ?value, ?toCtx, ?to),
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptArgVarPointsTo(?hctx, ?value, ?fromCtx, ?from),
   OptArgAssign(?toCtx, ?to, ?fromCtx, ?from, ?allowedType),
@@ -590,6 +715,8 @@ OptVirtualMethodInvocationBase(?invocation, ?base) :-
 // new context objects by employing arbitrary logic, and communicates
 // back to the main analysis the results of context creation using
 // ContextResponse.
+
+LyjContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, 1, ?base),
 configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, 1) :-
   OptVirtualMethodInvocationBase(?invocation, ?base),
   VarPointsTo(?hctx, ?value, ?callerCtx, ?base),
@@ -613,15 +740,29 @@ VarPointsTo(?hctx, ?value, ?immCtx, ?this) :-
   !ZipperPrecisionCriticalMethod(?tomethod).
 
 #else
-
+LyjCVarPointsTo(?hctx, ?value, ?calleeCtx, ?this),
 VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
   configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, _),
   configuration.ContextResponse(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, ?calleeCtx),
   ThisVar(?tomethod, ?this),
   !Value_Null(?value).
+
+
+
 #ifndef X_CONTEXT_REMOVER
  .plan 1:(2,1,3)
 #endif // X_CONTEXT_REMOVER
+
+//Lyj add
+LyjSmallVFlow(?callerCtx, ?base, ?calleeCtx, ?this) :-
+  LyjContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, 1,?base),
+  configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, _),
+  configuration.ContextResponse(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, ?calleeCtx),
+  ThisVar(?tomethod, ?this),
+  !Value_Null(?value),
+  TaintedVarPointsTo(_, ?callerCtx, ?base),
+  TaintedVarPointsTo(_, ?calleeCtx, ?this).
+
 
 #endif // X_ZIPPER
 
@@ -652,6 +793,7 @@ OptSpecialMethodInvocationBase(?invocation, ?base) :-
   Instruction_Method(?invocation, ?inmethod),
   SpecialMethodInvocation_Base(?invocation, ?base).
 
+LyjContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, 1, ?base),
 configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, 1) :-
   OptSpecialMethodInvocationBase(?invocation, ?base),
   VarPointsTo(?hctx, ?value, ?callerCtx, ?base),
