@@ -5,7 +5,7 @@ import os
 import sys
 
 str_ID='securibench'       #'securibench'   #'Example' #'TwoObjHeap'  #'securibench4'
-str='/home/lee/Documents/doop/downloads/out/{mstr_ID}/database'.format(mstr_ID=str_ID)
+str='out/{mstr_ID}/database'.format(mstr_ID=str_ID)
 strB='mainAnalysis.configuration.mFlow.B.csv'
 strC='mainAnalysis.configuration.mFlow.C.csv'
 strSB='mainAnalysis.configuration.mFlow.SB.csv'
@@ -138,8 +138,9 @@ def cmd(command):
    #过滤生成结果,将所有生成以mainAnalysis.(.*).csv的文件过滤成只有str_ID的行
     #os.system('bash Fliter')
    
-str_doop='/home/lee/Documents/doop/downloads'
-str_input='/home/lee/Documents/doop/downloads/{mstr_ID}.jar'.format(mstr_ID=str_ID)
+
+str_input='{mstr_ID}.jar'.format(mstr_ID=str_ID)
 str_analysis='tfa'  #tfa micro
-str_cmd='cd {mstr_doop}; ./doop  -a {mstr_analysis}  --input-file {mstr_input} --platform java_11  --id {mstr_ID} --information-flow webapps --information-flow-high-soundness --generate-jimple'.format(mstr_doop=str_doop,mstr_input=str_input,mstr_ID=str_ID,mstr_analysis=str_analysis)
+str_cmd='./doop  -a {mstr_analysis}  --input-file {mstr_input} --platform java_11  --id {mstr_ID} --information-flow webapps --information-flow-high-soundness --generate-jimple'.format(mstr_input=str_input,mstr_ID=str_ID,mstr_analysis=str_analysis)
+
 cmd(str_cmd)
