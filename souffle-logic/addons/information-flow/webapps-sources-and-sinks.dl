@@ -11,7 +11,7 @@
     match(pattern, method)
 
 //Lyj add
-TaintSourceMethodPattern("<test.Request: .* get.*\(.*\)>").
+//TaintSourceMethodPattern("<test.Request: .* get.*\(.*\)>").
 //Lyj add
 
 TaintSourceMethodPattern("<javax.servlet.ServletRequest: java.lang.String getHeader\(java.lang.String\)>").

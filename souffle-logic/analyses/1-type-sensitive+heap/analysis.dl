@@ -67,4 +67,6 @@ DynamicContextToHContext(?hctx, ?dynCtx) :-
     PlusType("<<clinit-context>>").
     PlusType("<<immutable-context>>").
     PlusType("<<immutable-hcontext>>").
+
+ .init mFlow = Flow
 }

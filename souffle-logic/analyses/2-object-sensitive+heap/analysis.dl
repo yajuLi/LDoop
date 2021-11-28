@@ -67,5 +67,7 @@
     !DynamicContextHeap1(_, ?dynCtx),
     isImmutableHContext(?hctx).
 #endif // HEAPDLS
+   
+.init mFlow = Flow
 
 }

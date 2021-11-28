@@ -60,4 +60,6 @@
 
   isInstruction("<<immutable-hcontext>>").
   isMethodInvocation("<<immutable-hcontext>>").
+
+ .init mFlow = Flow
 }
