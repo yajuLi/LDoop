@@ -1,18 +1,14 @@
 .comp Flow{
 
+    .decl exist(?var:Ctx_Var)
+    .output exist
     .decl SmallVFlow(?from:Ctx_Var, ?to:Ctx_Var)
     .output SmallVFlow
-    .decl SSmallVFlow(?from:Ctx_Var, ?to:Ctx_Var, ?from_Var:Var, ?to_Var:Var) 
-    .output SSmallVFlow
 
     .decl SourceValue(?Ctx_Invocation:Ctx_Var, ?var:Ctx_Var)
     .output SourceValue
-
     .decl SinkValue(?var:Ctx_Var, ?Ctx_SinkInvocation:Ctx_Var)
     .output SinkValue
-    .decl SSinkValue(?var:Ctx_Var, ?Ctx_SinkInvocation:Ctx_Var, ?from:Var, ?to:Var)  
-    .output SSinkValue
-
     .type Ctx_Var = [ctx:Context, var:Var]
     .type List = [
         tail : List,
@@ -22,62 +18,31 @@
         tail : SList,
         head : Var
     ]
-
     
-    .decl B(x : List)   //Context
+    .decl B(x : List)
     .output B
-    .decl MB(x : List, maxLength:number, currentLength:number)   //Context M is medium
-    .output MB
+    .limitsize B(n=10)
 
-    .decl C(x : List)   //Context
+    .decl C(x : List)
     .output C
+    .limitsize C(n=10)
 
-
-    .decl SB(x: SList)  //No Context,仅仅是把Context从显示中去掉,但是VFlow本质上还是带Context的
-    .output SB
-    .decl MSB(x: SList, maxLength:number, currentLength:number)
-    .output MSB
-
-
-    .decl SC(x : SList)  //No Context,仅仅是把Context从显示中去掉,但是VFlow本质上还是带Context的
-    .output SC
-
-     
-SSinkValue(?from_Ctx_Var, ?to_Ctx_Var, ?var, ?invocation),
 SinkValue(?from_Ctx_Var, ?to_Ctx_Var):-
     LeakingSinkVariable(_, ?invocation, ?ctx, ?var),
     ?from_Ctx_Var = [?ctx, ?var],
     ?to_Ctx_Var = [?ctx, ?invocation].
 
-SourceValue(?from_Ctx_Var, ?to_Ctx_Var):-
-    CallTaintingMethod(_, ?ctx, ?invo),
-    TypeForReturnValue(_, ?to, ?invo),
-    ?from_Ctx_Var = [?ctx, ?invo],
-    ?to_Ctx_Var = [?ctx, ?to].
-
-SSmallVFlow(?from_Ctx_Var, ?to_Ctx_Var, ?from, ?to),
+    
 SmallVFlow(?from_Ctx_Var, ?to_Ctx_Var):-
     mainAnalysis.LyjSmallVFlow(?from_Ctx, ?from, ?to_Ctx, ?to),
     ?from_Ctx_Var = [?from_Ctx, ?from],
     ?to_Ctx_Var = [?to_Ctx, ?to].
     
-    MSB(sr3,maxNum,num),
-    MB(r3,maxNum,num) :- 
-        MB(r1,maxNum,num1),num1<maxNum,num=num1+1,SmallVFlow(b,c),r1=[r2,b],r3=[r1,c],  //要保证MB和MSB有相同的长度
-        MSB(sr1,maxNum,num1),SSmallVFlow(b,c,sb,sc),sr1=[sr2,sb],sr3=[sr1,sc].          //要保证MB和MSB最后两个元素是相同的,Var的部分
+    B(r3) :- 
+        B(r1),SmallVFlow(b,c),r1=[r2,b],r3=[r1,c].
+    C(r31) :- B(r11),r11=[r21,b],SinkValue(b,c),r31=[r11,c].
     
-    SB(r):-
-          MSB(r, _, _).
-    B(r):-
-          MB(r, _, _).
-
-    SC(sr31),
-    C(r31) :- MB(r11,maxNum,num),r11=[r21,b],SinkValue(b,c),r31=[r11,c],
-              MSB(sr11,maxNum,num),sr11=[sr21,sb],SSinkValue(b,c,sb,sc),sr31=[sr11,sc].
-
-    
-    MSB([[nil, ?var1], ?var2], 10, 2),
-    MB([[nil, ?a], ?b], 10, 2) :-  //定义这条链路的前两个元素
+    B([[nil,?a],?b]) :-  //定义这条链路的前两个元素
         SourceValue(?a, ?b),
         ?a = [?ctx1, ?var1],
         ?b = [?ctx2, ?var2].

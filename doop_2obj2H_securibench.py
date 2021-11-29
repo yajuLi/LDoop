@@ -41,7 +41,10 @@ def cmd(command):
 
      
             
-            
+            os.system(strC1)
+            #os.system(strC2)
+            os.system(strC3)
+            os.system(strC4) 
 
             print('\n\n\n\n')
             print('--------')
@@ -62,7 +65,11 @@ def cmd(command):
             strB3='dot -Tsvg {mstr}/B.dot -o {mstr}/B.svg'.format(mstr=str)
             strB4='xdg-open {mstr}/B.svg'.format(mstr=str)
 
-           
+            os.system(strB1)
+            #os.system(strB2)
+            os.system(strB3)
+            os.system(strB4) 
+
             print('\n\n\n\n')
             print('--------')
             print('B Success')
@@ -87,7 +94,10 @@ def cmd(command):
 
      
             
-          
+            os.system(strSC1)
+            #os.system(strC2)
+            os.system(strSC3)
+            os.system(strSC4) 
 
             print('\n\n\n\n')
             print('--------')
@@ -110,7 +120,10 @@ def cmd(command):
             strSB3='dot -Tsvg {mstr}/SB.dot -o {mstr}/SB.svg'.format(mstr=str)
             strSB4='xdg-open {mstr}/SB.svg'.format(mstr=str)
 
-           
+            os.system(strSB1)
+            #os.system(strB2)
+            os.system(strSB3)
+            os.system(strSB4) 
 
             print('\n\n\n\n')
             print('--------')
@@ -127,7 +140,7 @@ def cmd(command):
    
 
 str_input='{mstr_ID}.jar'.format(mstr_ID=str_ID)
-str_analysis='context-insensitive'  #tfa micro
+str_analysis='2-object-sensitive+2-heap'  #tfa micro
 str_cmd='./doop  -a {mstr_analysis}  --input-file {mstr_input} --platform java_11  --id {mstr_ID} --information-flow webapps --information-flow-high-soundness --generate-jimple'.format(mstr_input=str_input,mstr_ID=str_ID,mstr_analysis=str_analysis)
 
 cmd(str_cmd)
