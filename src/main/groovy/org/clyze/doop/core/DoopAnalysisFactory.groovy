@@ -60,7 +60,8 @@ class DoopAnalysisFactory implements AnalysisFactory<DoopAnalysis> {
 			"web-app-sensitive"                  : "WebAppSensitiveConfiguration",
 			"sticky-2-object-sensitive"          : "StickyTwoObjectSensitiveConfiguration",
 			"adaptive-2-object-sensitive+heap"   : "AdaptiveTwoObjectSensitivePlusHeapConfiguration",
-            "tfa"                                : "TwoObjectSensitivePlusHeapConfiguration_TFA"
+            "tfa"                                : "TwoObjectSensitivePlusHeapConfiguration_TFA",
+            "3-object-sensitive+2-heap"          : "ThreeObjectSensitivePlusTwoHeapConfiguration"
 	]
 
 	/**
