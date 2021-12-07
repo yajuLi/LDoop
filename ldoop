@@ -39,10 +39,6 @@ def cmd(command):
        
         else:
             strC1='sed \'s/^.*nil, \[\[/"Ctx: /g\' {mstr}/{mstrC}|sed \'s/]], \[\[/" -> "Ctx: /g\'|sed \'s/], </\\nVar: </g\'|sed \'s/]]/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/C.dot'.format(mstr=str,mstrC=strC)
-            #strC1='sed \'s/^.*nil, \[\[/"Ctx :/g\' {mstr}/{mstrC}|sed \'s/], </\nVar: </g\'|sed \'s/]], \[\[/" -> "/g\'|sed \'s/]]$/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/C.dot'.format(mstr=str,mstrC=strC)
-            #strC1= 'sed \'s/^.*nil,//g\' {mstr}/{mstrC}|sed \'s/]],/" ->/g\'|sed \'s/\[\[/"[/g\'|sed \'s/]]/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/C.dot'.format(mstr=str,mstrC=strC)
-            #strC1='sed \'s/\]//g\' {mstr}/{mstrC}|sed \'s/\[//g\'|sed \'s/nil,//g\'|sed \'s/, </ -> </g\'|sed \'s/^/"/g\'|sed \'s/$/";/g\' |sed \'1i\strict digraph{{ \'|sed \'s/ -> /" -> "/g\' > {mstr}/C.dot'.format(mstr=str,mstrC=strC)
-            #strC2='echo \'}}\' >> {mstr}/C.dot'.format(mstr=str)
             strC3='dot -Tsvg {mstr}/C.dot -o {mstr}/C.svg'.format(mstr=str)
             strC4='xdg-open {mstr}/C.svg'.format(mstr=str)
 
@@ -65,10 +61,6 @@ def cmd(command):
             print('\n\n\n\n')
         else:
             strB1='sed \'s/^.*nil, \[\[/"Ctx: /g\' {mstr}/{mstrB}|sed \'s/]], \[\[/" -> "Ctx: /g\'|sed \'s/], </\\nVar: </g\'|sed \'s/]]/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/B.dot'.format(mstr=str,mstrB=strB)
-            #strB1='sed \'s/^.*nil, \[\[/"Ctx :/g\' {mstr}/{mstrB}|sed \'s/], </\nVar: </g\'|sed \'s/]], \[\[/" -> "/g\'|sed \'s/]]$/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/B.dot'.format(mstr=str,mstrB=strB)
-            #strSB1= 'sed \'s/^.*nil,//g\' {mstr}/{mstrB}|sed \'s/]],/" ->/g\'|sed \'s/\[\[/"[/g\'|sed \'s/]]/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/B.dot'.format(mstr=str,mstrB=strB)
-            #strB1='sed \'s/\]//g\' {mstr}/mainAnalysis.configuration.mFlow.B.csv |sed \'s/\[//g\'|sed \'s/nil,//g\'|sed \'s/, </ -> </g\'|sed \'s/^/"/g\'|sed \'s/$/";/g\' |sed \'1i\strict digraph{{ \'|sed \'s/ -> /" -> "/g\' > {mstr}/B.dot'.format(mstr=str)
-            #strB2='echo \'}}\' >> {mstr}/B.dot'.format(mstr=str)
             strB3='dot -Tsvg {mstr}/B.dot -o {mstr}/B.svg'.format(mstr=str)
             strB4='xdg-open {mstr}/B.svg'.format(mstr=str)
 
@@ -89,18 +81,9 @@ def cmd(command):
        
         else:
             strSC1= 'sed \'s/^.*nil, /"/g\' {mstr}/{mstrSC} |sed \'s/], </" -> "</g\'|sed \'s/]$/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/SC.dot'.format(mstr=str,mstrSC=strSC)
-            #strSC1=sed 's/^.*nil, </"</g'|sed 's/], </" -> "</g'|sed 's/]$/";/g'|sed '1i strict digraph{'|sed '$a }' >sc.dot
-            #strSC1='sed \'s/^.*nil, \[\[/"Ctx: /g\' {mstr}/{mstrSC}|sed \'s/]], \[\[/" -> "Ctx: /g\'|sed \'s/], </\\nVar: </g\'|sed \'s/]]/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/SC.dot'.format(mstr=str,mstrSC=strSC)
-            #strSC1='sed \'s/^.*nil, \[\[/"Ctx :/g\' {mstr}/{mstrSC}|sed \'s/], </\nVar: </g\'|sed \'s/]], \[\[/" -> "/g\'|sed \'s/]]$/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/SC.dot'.format(mstr=str,mstrSC=strSC)
-            #strSC1= 'sed \'s/^.*nil, /"/g\' {mstr}/{mstrSC} |sed \'s/], </" -> "</g\'|sed \'s/]$/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/SC.dot'.format(mstr=str,mstrSC=strSC)
-            #strSC1= 'sed \'s/^.*nil,//g\' {mstr}/{mstrSC}|sed \'s/]],/" ->/g\'|sed \'s/\[\[/"[/g\'|sed \'s/]]/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/SC.dot'.format(mstr=str,mstrSC=strSC)
-            #strC1='sed \'s/\]//g\' {mstr}/{mstrC}|sed \'s/\[//g\'|sed \'s/nil,//g\'|sed \'s/, </ -> </g\'|sed \'s/^/"/g\'|sed \'s/$/";/g\' |sed \'1i\strict digraph{{ \'|sed \'s/ -> /" -> "/g\' > {mstr}/C.dot'.format(mstr=str,mstrC=strC)
-            #strC2='echo \'}}\' >> {mstr}/C.dot'.format(mstr=str)
             strSC3='dot -Tsvg {mstr}/SC.dot -o {mstr}/SC.svg'.format(mstr=str)
             strSC4='xdg-open {mstr}/SC.svg'.format(mstr=str)
 
-     
-            
             os.system(strSC1)
             #os.system(strC2)
             os.system(strSC3)
@@ -118,12 +101,6 @@ def cmd(command):
             print('\n\n\n\n')
         else:
             strSB1= 'sed \'s/^.*nil, /"/g\' {mstr}/{mstrSB} |sed \'s/], </" -> "</g\'|sed \'s/]$/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/SB.dot'.format(mstr=str,mstrSB=strSB)
-            #strSB1='sed \'s/^.*nil, \[\[/"Ctx: /g\' {mstr}/{mstrSB}|sed \'s/]], \[\[/" -> "Ctx: /g\'|sed \'s/], </\\nVar: </g\'|sed \'s/]]/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/SB.dot'.format(mstr=str,mstrSB=strSB)
-            #strSB1='sed \'s/^.*nil, \[\[/"Ctx :/g\' {mstr}/{mstrSB}|sed \'s/], </\nVar: </g\'|sed \'s/]], \[\[/" -> "/g\'|sed \'s/]]$/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/SB.dot'.format(mstr=str,mstrSB=strSB)
-            #strSB1= 'sed \'s/^.*nil, /"/g\' {mstr}/{mstrSB} |sed \'s/], </" -> "</g\'|sed \'s/]$/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/SB.dot'.format(mstr=str,mstrSB=strSB)
-            #strSB1= 'sed \'s/^.*nil,//g\' {mstr}/{mstrSB}|sed \'s/]],/" ->/g\'|sed \'s/\[\[/"[/g\'|sed \'s/]]/";/g\'|sed \'1i strict digraph{{\'|sed \'$a }}\' >{mstr}/B.dot'.format(mstr=str,mstrSB=strSB)
-            #strB1='sed \'s/\]//g\' {mstr}/mainAnalysis.configuration.mFlow.B.csv |sed \'s/\[//g\'|sed \'s/nil,//g\'|sed \'s/, </ -> </g\'|sed \'s/^/"/g\'|sed \'s/$/";/g\' |sed \'1i\strict digraph{{ \'|sed \'s/ -> /" -> "/g\' > {mstr}/B.dot'.format(mstr=str)
-            #strB2='echo \'}}\' >> {mstr}/B.dot'.format(mstr=str)
             strSB3='dot -Tsvg {mstr}/SB.dot -o {mstr}/SB.svg'.format(mstr=str)
             strSB4='xdg-open {mstr}/SB.svg'.format(mstr=str)
 
@@ -142,8 +119,6 @@ def cmd(command):
             print('All Failed')
             print('\n\n\n\n')
 
-   #过滤生成结果,将所有生成以mainAnalysis.(.*).csv的文件过滤成只有str_ID的行
-    #os.system('bash Fliter')
 def main(argv):
     global analysisType
     try:
@@ -157,7 +132,10 @@ def main(argv):
         if option in ("-a", "--analysis"):
             print("anysis is: {0}".format(value))
             analysisType=format(value)
-            str_branch = 'git checkout {manalysisType}'.format(manalysisType=analysisType)
+            if analysisType =='trace':
+                str_branch = 'git checkout master'
+            elif analysisType == 'notrace':
+                str_branch = 'git checkout notrace'
             os.system(str_branch)
             cmd(str_cmd)
     print("error args: {0}".format(args))
