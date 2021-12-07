@@ -133,7 +133,7 @@ def main(argv):
             print("anysis is: {0}".format(value))
             analysisType=format(value)
             if analysisType =='trace':
-                str_branch = 'git checkout master'
+                str_branch = 'git checkout main'
             elif analysisType == 'notrace':
                 str_branch = 'git checkout notrace'
             os.system(str_branch)
