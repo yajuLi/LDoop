@@ -68,5 +68,4 @@
     isImmutableHContext(?hctx).
 #endif // HEAPDLS
 
-  .init mFlow = Flow 
 }
