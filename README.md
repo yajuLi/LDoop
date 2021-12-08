@@ -1,4 +1,4 @@
-This project aims to provding taint trace for Securibench-Micro Benchmark
+This project aims to provding taint trace for Securibench-Micro Benchmark.
 
 Taint trace example:
 ![VFlow](https://user-images.githubusercontent.com/60656299/145135628-e5261f69-62c7-450e-bc12-e74479bb9be0.png)
