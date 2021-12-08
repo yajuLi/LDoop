@@ -9,6 +9,7 @@ Software version:
    
 Shell command:
    cd /path/to/Ldoop/
+   
    ./ldoop -a trace
    
    
