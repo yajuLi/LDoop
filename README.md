@@ -8,8 +8,8 @@ Software version:
    OpenJDK (version 1.8.0)
    
 Shell command:
+
    cd /path/to/Ldoop/
-   
    ./ldoop -a trace
    
    
