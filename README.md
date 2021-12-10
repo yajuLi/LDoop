@@ -5,7 +5,7 @@ Taint trace example:
 
 Software version:
             
-      DOOP (version 4.24.2), souffle(version 2.0.2), graphviz (version 2.49.3) and OpenJDK (version 1.8.0)
+      DOOP (version 4.24.2), souffle(version 2.0.2), graphviz (version 2.49.3) ,OpenJDK (version 1.8.0) and Python3.8.0
    
 Shell command:
 
