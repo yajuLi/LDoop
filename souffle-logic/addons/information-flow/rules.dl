@@ -39,14 +39,6 @@
 .decl LyjLeakingTaintedInformationVars(?from_ctx:mainAnalysis.configuration.Context, ?from:Var,?to_ctx:mainAnalysis.configuration.Context,?to:Var)
 .output LyjLeakingTaintedInformationVars
 
-LyjRules("rules run").
-
-
-
-
-
-LyjRR(?a,?a) :-
-    LyjRules(?a).
 
 
 #ifndef DISABLE_POINTS_TO
